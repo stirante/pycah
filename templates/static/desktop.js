@@ -1,5 +1,6 @@
 let wsocket = new WebSocket("ws://localhost:8080/");
 wsocket.onmessage = evt => {
+    console.log(evt.data);
     let packet = JSON.parse(evt.data);
     switch (packet.command) {
         case Command.SESSION_STATE:
@@ -38,12 +39,17 @@ const LocalSession = {
     question: null,
     answers: [],
     highlight: null,
-    code: null
+    code: null,
+    players: []
 };
 
 function handleCreateSessionResponse(packet) {
     LocalSession.clientId = packet.client_id;
     LocalSession.code = packet.code;
+    $("#create-session").css("display", "none");
+    var $code = $("#code");
+    $code.text(LocalSession.code);
+    $code.css("display", "block");
 }
 
 function handleAddCardSetResponse(packet) {
@@ -57,6 +63,7 @@ function handleSessionState(packet) {
     LocalSession.question = packet.question;
     LocalSession.answers = packet.answers;
     LocalSession.highlight = packet.highlight;
+    LocalSession.players = packet.players;
 }
 
 function keepAlive() {
@@ -64,7 +71,7 @@ function keepAlive() {
     setTimeout(keepAlive, 10000);
 }
 
-function createSession(code) {
+function createSession() {
     wsocket.send(JSON.stringify({command:Command.CREATE_SESSION}));
 }
 

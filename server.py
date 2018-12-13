@@ -31,6 +31,14 @@ class Command(Enum):
     SESSION_STATE = "session_state"
 
 
+class GamePhase(Enum):
+    NOT_JOINED = -1
+    NOT_STARTED = 0
+    PICK_YOUR_CARD = 1
+    PICK_BEST_CARD = 2
+    ROUND_WINNER = 3
+
+
 class Client:
     def __init__(self, websocket):
         self.websocket = websocket
@@ -59,7 +67,7 @@ all_games = {}
 
 
 def get_player_by_websocket(websocket):
-    for socket, p in all_players:
+    for socket, p in all_players.items():
         if websocket == socket:
             return p
     return None
@@ -70,7 +78,8 @@ async def handle_undefined_packet(client, packet):
 
 
 async def handle_keep_alive(client, packet):
-    print("Keep alive:", packet["time"])
+    pass
+    # print("Keep alive:", packet["time"])
 
 
 async def handle_create_session(client, packet):
@@ -78,7 +87,7 @@ async def handle_create_session(client, packet):
     session = GameSession(client)
     all_games[session.code] = session
     client.is_player = False
-    client.send({
+    await client.send({
         "command": Command.CREATE_SESSION.value,
         "client_id": client.client_id,
         "code": session.code
@@ -97,12 +106,21 @@ async def websocket_handler(websocket, path):
     try:
         while True:
             data = await websocket.recv()
-            # print(data)
             packet = json.loads(data)
             handler = HANDLERS.get(packet["command"], handle_undefined_packet)
             await handler(get_player_by_websocket(websocket), packet)
     except websockets.ConnectionClosed:
         print("Connection closed at " + websocket.host)
+        pl = get_player_by_websocket(websocket)
+        for code, session in all_games.items():
+            if session.gm == pl:
+                await session.broadcast({
+                    "command": Command.GAME_STATE,
+                    "game_phase": GamePhase.NOT_JOINED.value,
+                    "deck": []
+                })
+            elif pl in session.players:
+                session.players.remove(pl)
         all_players.pop(websocket, None)
 
 
