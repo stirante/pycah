@@ -46,8 +46,8 @@ const LocalSession = {
 function handleCreateSessionResponse(packet) {
     LocalSession.clientId = packet.client_id;
     LocalSession.code = packet.code;
-    $("#create-session").css("display", "none");
-    var $code = $("#code");
+    //$("#create-session").css("display", "none");
+    let $code = $("#code");
     $code.text(LocalSession.code);
     $code.css("display", "block");
 }
@@ -64,6 +64,15 @@ function handleSessionState(packet) {
     LocalSession.answers = packet.answers;
     LocalSession.highlight = packet.highlight;
     LocalSession.players = packet.players;
+    if (LocalSession.gamePhase === SessionPhase.NOT_STARTED) {
+        let ready = 0;
+        for (let player in LocalSession.players) {
+            if (player.ready) ready++;
+        }
+        let count = "Ready players: " + ready + "/" + LocalSession.players.length;
+        if (LocalSession.players.length < 2) count += " (Minimum 2 players required)";
+        $("#pregame-player-count").text(count);
+    }
 }
 
 function keepAlive() {
@@ -72,9 +81,26 @@ function keepAlive() {
 }
 
 function createSession() {
-    wsocket.send(JSON.stringify({command:Command.CREATE_SESSION}));
+    let $create = $("#create-session");
+    $create.addClass("fade-out");
+    afterAnimation(() => {
+        $("#create-session").css("display", "none");
+        if (LocalSession.code !== null) {
+            let $codeContainer = $("#code-container");
+            let $code = $("#code");
+            $code.text(LocalSession.code);
+            $codeContainer.css("display", "block");
+            setTimeout(() =>
+                $codeContainer.removeClass("fade-out"), 10);
+        }
+    });
+    wsocket.send(JSON.stringify({command: Command.CREATE_SESSION}));
 }
 
 function addCardSet(id) {
     wsocket.send(JSON.stringify({command: Command.PICK_CARD, client_id: LocalSession.clientId, set_id: id}));
+}
+
+function afterAnimation(func) {
+    setTimeout(func, 300);
 }

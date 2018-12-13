@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%;">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -19,10 +19,42 @@
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="static/style.css"/>
 </head>
-<body>
+<body style="height: 100%;">
+<div id="create-session-container" class="h-100 row align-items-center">
+    <div class="col" style="text-align: center;">
+        <button id="create-session" class="btn btn-primary animate" onclick="createSession()">Create session</button>
+        <div id="code-container" class="animate fade-out" style="display: none;">
+            <h1 id="code">123456</h1>
+            <h3>Go to mobile site and type this code</h3>
+            <h5 id="pregame-player-count">Connected players: 0 (Minimum 2 players are required)</h5>
+            <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#card-set-modal">Add card set
+            </button>
+        </div>
+    </div>
+</div>
 <div class="container">
-    <button id="create-session" onclick="createSession()">Create session</button>
-    <h1 id="code" style="display: none;"></h1>
+</div>
+<div class="modal fade" id="card-set-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Modal Heading</h4>
+                <button type="button" class="close" data-dismiss="modal">×</button>
+            </div>
+            <div class="modal-body">
+                <label for="card-set-id">Card set code (find at
+                    <a target="_blank" href="https://www.cardcastgame.com/browse">cardcastgame.com/browse</a>
+                    )
+                </label>
+                <input id="card-set-id" type="text" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="addCardSet($('#card-set-id').text())">Add</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+
+        </div>
+    </div>
 </div>
 </body>
 </html>

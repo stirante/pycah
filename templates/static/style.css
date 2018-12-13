@@ -1,5 +1,6 @@
 body {
     background: #444444;
+    font-family: 'Helvetica', 'Lato', sans-serif;
 }
 
 .card {
@@ -9,5 +10,25 @@ body {
     padding: 10px;
     margin-top: 10px;
     font-weight: 700;
-    font-family: 'Helvetica', 'Lato', sans-serif;
+}
+
+button:focus {
+    outline: none !important;
+}
+
+.animate {
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    -ms-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+.fade-out {
+    opacity: 0;
+    margin-bottom: 30px;
+}
+
+#code-container {
+    color: white;
 }

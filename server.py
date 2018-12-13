@@ -12,6 +12,8 @@ import socketserver
 import json
 import uuid
 
+from cardcast import CardSet
+
 HOST = "localhost"
 HTTP_PORT = 80
 WEBSOCKET_PORT = 8080
@@ -53,6 +55,7 @@ class GameSession:
         self.gm = gm
         self.players = []
         self.code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        self.sets = []
 
     async def broadcast(self, packet):
         for player in self.players:
@@ -70,6 +73,13 @@ def get_player_by_websocket(websocket):
     for socket, p in all_players.items():
         if websocket == socket:
             return p
+    return None
+
+
+def get_session_by_client(client):
+    for code, session in all_games.items():
+        if session.gm == client:
+            return session
     return None
 
 
@@ -94,9 +104,28 @@ async def handle_create_session(client, packet):
     })
 
 
+async def handle_add_card_set(client, packet):
+    print("Add card set " + packet.set_id)
+    session = get_session_by_client(client)
+    try:
+        set = CardSet(packet.set_id)
+        session.sets.append(set)
+        await client.send({
+            "command": Command.ADD_CARD_SET.value,
+            "success": True,
+            "set_name": set.name
+        })
+    except IOError:
+        await client.send({
+            "command": Command.ADD_CARD_SET.value,
+            "success": False
+        })
+
+
 HANDLERS = {
     Command.KEEP_ALIVE.value: handle_keep_alive,
-    Command.CREATE_SESSION.value: handle_create_session
+    Command.CREATE_SESSION.value: handle_create_session,
+    Command.ADD_CARD_SET.value: handle_add_card_set
 }
 
 
