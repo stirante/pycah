@@ -1,4 +1,4 @@
-let wsocket = new WebSocket("ws://localhost:8080/");
+let wsocket = new WebSocket("ws://" + location.host + ":8080/");
 wsocket.onmessage = evt => {
     console.log(evt.data);
     let packet = JSON.parse(evt.data);
@@ -43,22 +43,51 @@ const LocalSession = {
     players: []
 };
 
+function switchContainers(a, b) {
+    $("#" + a).addClass("fade-out");
+    setTimeout(function () {
+        $("#" + a).css("display", "none");
+        $("#" + b).css("display", "block");
+        setTimeout(function () {
+            $("#" + b).removeClass("fade-out");
+        }, 10);
+    }, 300);
+}
+
 function handleCreateSessionResponse(packet) {
     LocalSession.clientId = packet.client_id;
     LocalSession.code = packet.code;
-    //$("#create-session").css("display", "none");
     let $code = $("#code");
     $code.text(LocalSession.code);
-    $code.css("display", "block");
+    let $invite = $("#invite-qr-code");
+    $invite.click(() => {
+        let win = window.open("http://" + location.hostname + "/player.html#" + LocalSession.code, "_blank");
+        if (win) {
+            win.focus();
+        } else {
+            alert("Please allow popups for this website");
+        }
+    });
+    new QRCode($invite[0], {
+        text: "http://" + location.hostname + "/player.html#" + LocalSession.code,
+        width: 128,
+        height: 128,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+    });
 }
 
 function handleAddCardSetResponse(packet) {
     if (!packet.success) {
         alert("Failed to add card set " + packet.set_id);
+    } else {
+        alert("Card set \"" + packet.set_name + "\" added successfully")
     }
 }
 
 function handleSessionState(packet) {
+    let oldPhase = LocalSession.gamePhase;
     LocalSession.gamePhase = packet.game_phase;
     LocalSession.question = packet.question;
     LocalSession.answers = packet.answers;
@@ -67,12 +96,59 @@ function handleSessionState(packet) {
     if (LocalSession.gamePhase === SessionPhase.NOT_STARTED) {
         let ready = 0;
         for (let player in LocalSession.players) {
-            if (player.ready) ready++;
+            if (LocalSession.players[player].ready) ready++;
         }
         let count = "Ready players: " + ready + "/" + LocalSession.players.length;
         if (LocalSession.players.length < 2) count += " (Minimum 2 players required)";
         $("#pregame-player-count").text(count);
+    } else if (LocalSession.gamePhase === SessionPhase.PICK_YOUR_CARD) {
+        let $question = $("#question-container");
+        $question.empty();
+        $question.html(createQuestionCard(LocalSession.question));
+        if (oldPhase === SessionPhase.NOT_STARTED) {
+            switchContainers("code-container", "question-container");
+        } else {
+            switchContainers("answers-container", "question-container");
+        }
+    } else if (LocalSession.gamePhase === SessionPhase.PICK_BEST_CARD) {
+        let $question = $("#question-container");
+        let html = createQuestionCard(LocalSession.question);
+        for (let x in LocalSession.answers) {
+            html += createAnswerCard(LocalSession.answers[x]);
+        }
+        $question.html(html);
+    } else if (LocalSession.gamePhase === SessionPhase.ROUND_WINNER) {
+        let $question = $("#question-container");
+        let winner = "";
+        if (LocalSession.highlight === "")
+            winner = "<div class=\"alert alert-info\">" +
+                "This round ended in <strong>draw</strong>!" +
+                "  </div>";
+        else
+            winner = "<div class=\"alert alert-success\">" +
+                "Winner of this round is <strong>" + LocalSession.highlight + "</strong>!" +
+                "</div>";
+        let html = winner + createQuestionCard(LocalSession.question);
+        for (let x in LocalSession.answers) {
+            html += createAnswerCard(LocalSession.answers[x]);
+        }
+        $question.html(html);
+        setTimeout(() => {
+            wsocket.send(JSON.stringify({
+                command: Command.SESSION_STATE,
+                client_id: LocalSession.clientId,
+                game_phase: SessionPhase.PICK_YOUR_CARD
+            }))
+        }, 5000);
     }
+}
+
+function createQuestionCard(text) {
+    return "<div class=\"card question-card desktop-card\">" + text + "</div>";
+}
+
+function createAnswerCard(text) {
+    return "<div class=\"card desktop-card\">" + text + "</div>";
 }
 
 function keepAlive() {
@@ -81,26 +157,10 @@ function keepAlive() {
 }
 
 function createSession() {
-    let $create = $("#create-session");
-    $create.addClass("fade-out");
-    afterAnimation(() => {
-        $("#create-session").css("display", "none");
-        if (LocalSession.code !== null) {
-            let $codeContainer = $("#code-container");
-            let $code = $("#code");
-            $code.text(LocalSession.code);
-            $codeContainer.css("display", "block");
-            setTimeout(() =>
-                $codeContainer.removeClass("fade-out"), 10);
-        }
-    });
     wsocket.send(JSON.stringify({command: Command.CREATE_SESSION}));
+    switchContainers("create-session", "code-container");
 }
 
 function addCardSet(id) {
-    wsocket.send(JSON.stringify({command: Command.PICK_CARD, client_id: LocalSession.clientId, set_id: id}));
-}
-
-function afterAnimation(func) {
-    setTimeout(func, 300);
+    wsocket.send(JSON.stringify({command: Command.ADD_CARD_SET, client_id: LocalSession.clientId, set_id: id}));
 }

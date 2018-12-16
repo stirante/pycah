@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%;">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Cards against humanity</title>
     <script src="static/desktop.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -17,20 +16,27 @@
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700&amp;subset=latin-ext" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="static/qrcode.min.js"></script>
     <link rel="stylesheet" href="static/style.css"/>
+    <title>Cards against humanity</title>
+
 </head>
 <body style="height: 100%;">
 <div id="create-session-container" class="h-100 row align-items-center">
     <div class="col" style="text-align: center;">
         <button id="create-session" class="btn btn-primary animate" onclick="createSession()">Create session</button>
         <div id="code-container" class="animate fade-out" style="display: none;">
+            <div id="invite-qr-code"></div>
             <h1 id="code">123456</h1>
             <h3>Go to mobile site and type this code</h3>
-            <h5 id="pregame-player-count">Connected players: 0 (Minimum 2 players are required)</h5>
+            <h5 id="pregame-player-count">Ready players: 0/0 (Minimum 2 players are required)</h5>
             <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#card-set-modal">Add card set
             </button>
         </div>
+        <div id="question-container" class="animate fade-out" style="display: none;">
+        </div>
     </div>
+</div>
 </div>
 <div class="container">
 </div>
@@ -49,7 +55,9 @@
                 <input id="card-set-id" type="text" class="form-control">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="addCardSet($('#card-set-id').text())">Add</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                        onclick="addCardSet($('#card-set-id').val())">Add
+                </button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
 

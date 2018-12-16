@@ -1,6 +1,11 @@
 body {
     background: #444444;
     font-family: 'Helvetica', 'Lato', sans-serif;
+    color: white;
+}
+
+html {
+    height: 100%;
 }
 
 .card {
@@ -8,8 +13,26 @@ body {
     color: black;
     min-height: 250px;
     padding: 10px;
-    margin-top: 10px;
     font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    margin: 10px auto auto;
+}
+
+.desktop-card {
+    margin: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    width:180px;
+}
+
+.question-card {
+    background-color: black;
+    color: white;
+}
+
+#question-container {
+    margin: auto;
 }
 
 button:focus {
@@ -31,4 +54,20 @@ button:focus {
 
 #code-container {
     color: white;
+}
+
+#code {
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+}
+
+.modal {
+    color: black;
+}
+
+#invite-qr-code img {
+    margin: auto;
+}
+
+#center-container {
+    margin: auto;
 }
