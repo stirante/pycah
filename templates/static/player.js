@@ -87,8 +87,10 @@ function handleGameState(packet) {
         $("#card-container").html(deck);
         if (oldPhase === GamePhase.NOT_STARTED) {
             // switchContainers("ready-container", "card-container");
+            $("#ready-container").addClass("fade-out");
             $("#wait-container").addClass("fade-out");
             setTimeout(() => {
+                $("#ready-container").css("display", "none");
                 $("#wait-container").css("display", "none");
                 $(document.body).css("height", "initial");
                 $("#card-container").css("display", "flex");

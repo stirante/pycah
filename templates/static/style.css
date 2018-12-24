@@ -71,3 +71,7 @@ button:focus {
 #center-container {
     margin: auto;
 }
+
+#create-session-container {
+    margin: 0;
+}

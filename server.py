@@ -107,6 +107,26 @@ class GameSession:
                     "options": self.current_answers
                 })
 
+    async def update_deck(self, player):
+        if self.phase != GamePhase.PICK_BEST_CARD:
+            while len(player.deck) < 8:
+                player.deck.append(self.get_random_answer())
+            await player.send({
+                "command": Command.GAME_STATE.value,
+                "deck": player.deck,
+                "game_phase": self.phase.value,
+                "options": self.current_answers
+            })
+            await self.gm.send({
+                "command": Command.SESSION_STATE.value,
+                "game_phase": self.phase.value,
+                "question": self.current_question,
+                "answers": self.current_answers,
+                "highlight": self.current_highlight,
+                "players": [{"id": x.client_id, "username": x.username, "score": x.score, "ready": x.ready} for x in
+                            self.players]
+            })
+
     def get_random_answer(self):
         return random.choice(random.choice(self.sets).answers)
 
@@ -119,12 +139,13 @@ class GameSession:
             self.phase = GamePhase.PICK_YOUR_CARD
             await self.update_decks()
             self.current_question = self.get_random_question()
-        if self.phase == GamePhase.PICK_YOUR_CARD and len(self.current_answers) == len(self.players):
+        elif self.phase == GamePhase.PICK_YOUR_CARD and len(self.current_answers) == len(self.players):
             self.phase = GamePhase.PICK_BEST_CARD
             await self.update_decks()
-        if self.phase == GamePhase.PICK_BEST_CARD and len(self.current_best_answers) == len(self.current_answers):
+        elif self.phase == GamePhase.PICK_BEST_CARD and len(self.current_best_answers) == len(self.current_answers):
             self.phase = GamePhase.ROUND_WINNER
-            best = sorted(Counter([y for x, y in self.current_best_answers.items()]).items())
+            best = sorted(Counter([y for x, y in self.current_best_answers.items()]).items(),
+                          key=lambda answer: answer[1], reverse=True)
             print(best)
             if len(best) > 1 and best[0][1] == best[1][1]:
                 self.current_highlight = ""
@@ -224,12 +245,13 @@ async def handle_join_session(websocket, packet):
             return
         client.username = packet["username"]
         session.players.append(client)
-        await session.update_session()
         await client.send({
             "command": Command.JOIN.value,
             "success": True,
             "client_id": client.client_id
         })
+        if session.phase != GamePhase.NOT_STARTED:
+            await session.update_deck(client)
     else:
         await client.send({
             "command": Command.JOIN.value,
