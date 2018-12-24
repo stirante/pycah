@@ -75,3 +75,10 @@ button:focus {
 #create-session-container {
     margin: 0;
 }
+
+.scoreboard {
+    position: fixed;
+    bottom: 0;
+    text-align: left;
+    width: 15% !important;
+}

@@ -104,7 +104,7 @@ function handleSessionState(packet) {
     } else if (LocalSession.gamePhase === SessionPhase.PICK_YOUR_CARD) {
         let $question = $("#question-container");
         $question.empty();
-        $question.html(createQuestionCard(LocalSession.question));
+        $question.html(createScoreboard(LocalSession.players) + createQuestionCard(LocalSession.question));
         if (oldPhase === SessionPhase.NOT_STARTED) {
             switchContainers("code-container", "question-container");
         } else {
@@ -112,7 +112,7 @@ function handleSessionState(packet) {
         }
     } else if (LocalSession.gamePhase === SessionPhase.PICK_BEST_CARD) {
         let $question = $("#question-container");
-        let html = createQuestionCard(LocalSession.question);
+        let html = createScoreboard(LocalSession.players) + createQuestionCard(LocalSession.question);
         for (let x in LocalSession.answers) {
             html += createAnswerCard(LocalSession.answers[x]);
         }
@@ -128,7 +128,7 @@ function handleSessionState(packet) {
             winner = "<div class=\"alert alert-success\">" +
                 "Winner of this round is <strong>" + LocalSession.highlight + "</strong>!" +
                 "</div>";
-        let html = winner + createQuestionCard(LocalSession.question);
+        let html = createScoreboard(LocalSession.players) + winner + createQuestionCard(LocalSession.question);
         for (let x in LocalSession.answers) {
             html += createAnswerCard(LocalSession.answers[x]);
         }
@@ -141,6 +141,14 @@ function handleSessionState(packet) {
             }))
         }, 5000);
     }
+}
+
+function createScoreboard(players) {
+    let table = "<table class='scoreboard table table-bordered'><tr><td>Player</td><td>Score</td></tr>";
+    for (let player in players) {
+        table += "<tr><td>" + players[player].username + "</td><td>" + players[player].score + "</td></tr>"
+    }
+    return table;
 }
 
 function createQuestionCard(text) {

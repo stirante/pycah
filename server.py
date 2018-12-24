@@ -9,7 +9,7 @@ from collections import Counter
 import json
 import uuid
 
-from cardcast import CardSet
+from cardcast import CardSet, DEFAULT_SET
 import http_server
 from websocket_server import start_websocket
 
@@ -162,8 +162,8 @@ class GameSession:
             "question": self.current_question,
             "answers": self.current_answers,
             "highlight": self.current_highlight,
-            "players": [{"id": x.client_id, "username": x.username, "score": x.score, "ready": x.ready} for x in
-                        self.players]
+            "players": sorted([{"id": x.client_id, "username": x.username, "score": x.score, "ready": x.ready} for x in
+                               self.players], key=lambda x: x["score"], reverse=True)
         })
 
 
@@ -213,6 +213,14 @@ async def handle_add_card_set(websocket, packet):
     client = get_client_by_websocket(websocket)
     print("Add card set " + packet["set_id"])
     session = get_session_by_client(client)
+    if packet["set_id"] == "":
+        session.sets.append(DEFAULT_SET)
+        await client.send({
+            "command": Command.ADD_CARD_SET.value,
+            "success": True,
+            "set_name": DEFAULT_SET.name
+        })
+        return
     try:
         set = CardSet(packet["set_id"])
         session.sets.append(set)

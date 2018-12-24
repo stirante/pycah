@@ -23,6 +23,11 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
         self.send_header('Content-type', type)
         self.end_headers()
 
+    def _set_html_headers(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+
     def _send_text(self, text):
         self.wfile.write(bytes(text, "utf-8"))
 
@@ -38,11 +43,11 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
         if str.startswith(self.path, "/static/") and os.path.exists('templates' + self.path):
             self._set_headers(mimetypes.guess_type('templates' + self.path)[0])
         elif str.startswith(self.path, "/player.html"):
-            self._set_headers(mimetypes.guess_type('templates/player.html'))
+            self._set_html_headers()
         elif str.startswith(self.path, "/desktop.html"):
-            self._set_headers(mimetypes.guess_type('templates/desktop.html'))
+            self._set_html_headers()
         elif str.startswith(self.path, "/"):
-            self._set_headers(mimetypes.guess_type('templates/index.html'))
+            self._set_html_headers()
         else:
             self._not_found()
             return
