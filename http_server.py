@@ -30,14 +30,17 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
 
     def _send_text(self, text):
         self.wfile.write(bytes(text, "utf-8"))
+        self.wfile.close()
 
     def _not_found(self):
         self.send_response(404)
         self.end_headers()
+        self.wfile.close()
 
     def _method_not_allowed(self):
         self.send_response(405)
         self.end_headers()
+        self.wfile.close()
 
     def do_request(self, only_headers):
         if str.startswith(self.path, "/static/") and os.path.exists('templates' + self.path):
@@ -60,6 +63,8 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
                 self._send_text(get_file_contents('templates/desktop.html'))
             elif str.startswith(self.path, "/"):
                 self._send_text(get_file_contents('templates/index.html'))
+        else:
+            self.wfile.close()
 
     def do_GET(self):
         self.do_request(False)
