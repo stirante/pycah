@@ -22,29 +22,34 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', type)
         self.end_headers()
+        self.close_connection = True
 
     def _set_html_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
+        self.close_connection = True
 
     def _send_text(self, text):
         self.wfile.write(bytes(text, "utf-8"))
-        self.wfile.close()
 
     def _not_found(self):
         self.send_response(404)
         self.end_headers()
-        self.wfile.close()
+        self.close_connection = True
 
     def _method_not_allowed(self):
         self.send_response(405)
         self.end_headers()
-        self.wfile.close()
+        self.close_connection = True
 
     def do_request(self, only_headers):
+        print("do_request(" + str(only_headers) + "), path: " + self.path)
         if str.startswith(self.path, "/static/") and os.path.exists('templates' + self.path):
             self._set_headers(mimetypes.guess_type('templates' + self.path)[0])
+        elif str.startswith(self.path, "/static/"):
+            self._not_found()
+            return
         elif str.startswith(self.path, "/player.html"):
             self._set_html_headers()
         elif str.startswith(self.path, "/desktop.html"):
@@ -63,8 +68,6 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
                 self._send_text(get_file_contents('templates/desktop.html'))
             elif str.startswith(self.path, "/"):
                 self._send_text(get_file_contents('templates/index.html'))
-        else:
-            self.wfile.close()
 
     def do_GET(self):
         self.do_request(False)
