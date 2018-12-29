@@ -318,14 +318,17 @@ async def handle_open_websocket(websocket):
 
 async def handle_close_websocket(websocket):
     pl = get_client_by_websocket(websocket)
+    to_pop = None
     for code, session in all_sessions.items():
         if session.gm == pl:
             await session.close()
-            all_sessions.pop(code)
+            to_pop = code
         elif pl in session.players:
             session.players.remove(pl)
             await session.update_session()
     all_players.pop(pl, None)
+    if to_pop is not None:
+        all_sessions.pop(to_pop)
 
 
 HANDLERS = {
