@@ -321,11 +321,11 @@ async def handle_close_websocket(websocket):
     for code, session in all_sessions.items():
         if session.gm == pl:
             await session.close()
-            all_sessions.pop(websocket)
+            all_sessions.pop(code)
         elif pl in session.players:
             session.players.remove(pl)
             await session.update_session()
-    all_players.pop(websocket, None)
+    all_players.pop(pl, None)
 
 
 HANDLERS = {
