@@ -166,6 +166,17 @@ class GameSession:
                                self.players], key=lambda x: x["score"], reverse=True)
         })
 
+    async def host_update(self):
+        await self.gm.send({
+            "command": Command.SESSION_STATE.value,
+            "game_phase": self.phase.value,
+            "question": self.current_question,
+            "answers": self.current_answers,
+            "highlight": self.current_highlight,
+            "players": sorted([{"id": x.client_id, "username": x.username, "score": x.score, "ready": x.ready} for x in
+                               self.players], key=lambda x: x["score"], reverse=True)
+        })
+
 
 all_players = {}
 all_sessions = {}
@@ -258,6 +269,7 @@ async def handle_join_session(websocket, packet):
             "success": True,
             "client_id": client.client_id
         })
+        await session.host_update()
         if session.phase != GamePhase.NOT_STARTED:
             await session.update_deck(client)
     else:
@@ -309,6 +321,7 @@ async def handle_close_websocket(websocket):
     for code, session in all_sessions.items():
         if session.gm == pl:
             await session.close()
+            all_sessions.pop(websocket)
         elif pl in session.players:
             session.players.remove(pl)
             await session.update_session()
