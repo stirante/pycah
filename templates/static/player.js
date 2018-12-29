@@ -77,6 +77,7 @@ function handleGameState(packet) {
         $("#ready-container").css("display", "none");
         $("#wait-container").css("display", "none");
         $("#card-container").css("display", "none");
+        noSleep.disable();
     } else if (LocalPlayer.gamePhase === GamePhase.PICK_YOUR_CARD ||
         LocalPlayer.gamePhase === GamePhase.PICK_BEST_CARD) {
         LocalPlayer.picked = false;
@@ -108,6 +109,7 @@ function keepAlive() {
 }
 
 function joinSession(code, username) {
+    noSleep.enable();
     wsocket.send(JSON.stringify({command: Command.JOIN, code: code, username: username}));
 }
 
@@ -130,8 +132,11 @@ function createAnswerCard(text) {
     return "<div class=\"col-6 col-md-3\"><div class=\"card\" onclick='pickCard($(this).text())'>" + text + "</div></div>";
 }
 
+let noSleep;
+
 $(document).ready(() => {
     if (window.location.hash) {
         $("#session-code").val(window.location.hash.substr(1))
     }
+    noSleep = new NoSleep();
 });

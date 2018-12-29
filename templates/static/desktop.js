@@ -170,5 +170,6 @@ function createSession() {
 }
 
 function addCardSet(id) {
+    $('#card-set-id').val("");
     wsocket.send(JSON.stringify({command: Command.ADD_CARD_SET, client_id: LocalSession.clientId, set_id: id}));
 }
