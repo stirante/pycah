@@ -146,7 +146,7 @@ function handleSessionState(packet) {
 function createScoreboard(players) {
     let table = "<table class='scoreboard table table-bordered'><tr><td>Player</td><td>Score</td></tr>";
     for (let player in players) {
-        table += "<tr><td>" + players[player].username + "</td><td>" + players[player].score + "</td></tr>"
+        table += "<tr><td>" + htmlEncode(players[player].username) + "</td><td>" + players[player].score + "</td></tr>"
     }
     return table;
 }
@@ -172,4 +172,8 @@ function createSession() {
 function addCardSet(id) {
     $('#card-set-id').val("");
     wsocket.send(JSON.stringify({command: Command.ADD_CARD_SET, client_id: LocalSession.clientId, set_id: id}));
+}
+
+function htmlEncode(value) {
+    return $('<div/>').text(value).html();
 }

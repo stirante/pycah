@@ -67,6 +67,8 @@ class GameSession:
         self.current_answers = {}
         self.current_best_answers = {}
         self.current_highlight = ""
+        self.alreadyChosenQuestions = []
+        self.alreadyChosenAnswers = []
 
     async def broadcast(self, packet):
         for player in self.players:
@@ -128,10 +130,22 @@ class GameSession:
             })
 
     def get_random_answer(self):
-        return random.choice(random.choice(self.sets).answers)
+        diff = list(set(random.choice(self.sets).answers).difference(self.alreadyChosenAnswers))
+        if len(diff) is 0:
+            self.alreadyChosenAnswers = []
+            diff = random.choice(self.sets).answers
+        choice = random.choice(diff)
+        self.alreadyChosenAnswers.append(choice)
+        return choice
 
     def get_random_question(self):
-        return random.choice(random.choice(self.sets).questions)
+        diff = list(set(random.choice(self.sets).questions).difference(self.alreadyChosenQuestions))
+        if len(diff) is 0:
+            self.alreadyChosenQuestions = []
+            diff = random.choice(self.sets).questions
+        choice = random.choice(diff)
+        self.alreadyChosenQuestions.append(choice)
+        return choice
 
     async def update_session(self):
         if self.phase == GamePhase.NOT_STARTED and all([x.ready for x in self.players]) and \
