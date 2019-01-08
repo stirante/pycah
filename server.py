@@ -81,7 +81,8 @@ class GameSession:
                 "command": Command.GAME_STATE.value,
                 "game_phase": GamePhase.NOT_JOINED.value,
                 "deck": [],
-                "options": {}
+                "options": {},
+                "question": ""
             })
 
     async def update_decks(self):
@@ -96,7 +97,8 @@ class GameSession:
                     "command": Command.GAME_STATE.value,
                     "deck": copy,
                     "game_phase": self.phase.value,
-                    "options": self.current_answers
+                    "options": self.current_answers,
+                    "question": self.current_question
                 })
         else:
             for player in self.players:
@@ -106,7 +108,8 @@ class GameSession:
                     "command": Command.GAME_STATE.value,
                     "deck": player.deck,
                     "game_phase": self.phase.value,
-                    "options": self.current_answers
+                    "options": self.current_answers,
+                    "question": self.current_question
                 })
 
     async def update_deck(self, player):
@@ -117,7 +120,8 @@ class GameSession:
                 "command": Command.GAME_STATE.value,
                 "deck": player.deck,
                 "game_phase": self.phase.value,
-                "options": self.current_answers
+                "options": self.current_answers,
+                "question": self.current_question
             })
             await self.gm.send({
                 "command": Command.SESSION_STATE.value,
@@ -151,8 +155,8 @@ class GameSession:
         if self.phase == GamePhase.NOT_STARTED and all([x.ready for x in self.players]) and \
                 len(self.sets) is not 0 and len(self.players) > 1:
             self.phase = GamePhase.PICK_YOUR_CARD
-            await self.update_decks()
             self.current_question = self.get_random_question()
+            await self.update_decks()
         elif self.phase == GamePhase.PICK_YOUR_CARD and len(self.current_answers) == len(self.players):
             self.phase = GamePhase.PICK_BEST_CARD
             await self.update_decks()

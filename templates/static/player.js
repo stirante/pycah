@@ -42,7 +42,8 @@ const LocalPlayer = {
     clientId: null,
     gamePhase: GamePhase.NOT_JOINED,
     deck: [],
-    picked: false
+    picked: false,
+    question: ""
 };
 
 function switchContainers(a, b) {
@@ -70,6 +71,7 @@ function handleGameState(packet) {
     let oldPhase = LocalPlayer.gamePhase;
     LocalPlayer.gamePhase = packet.game_phase;
     LocalPlayer.deck = packet.deck;
+    LocalPlayer.question = packet.question;
     if (LocalPlayer.gamePhase === GamePhase.NOT_JOINED) {
         let $join = $("#join-container");
         $join.css("display", "block");
@@ -81,7 +83,7 @@ function handleGameState(packet) {
     } else if (LocalPlayer.gamePhase === GamePhase.PICK_YOUR_CARD ||
         LocalPlayer.gamePhase === GamePhase.PICK_BEST_CARD) {
         LocalPlayer.picked = false;
-        let deck = "";
+        let deck = "<h3 style='width: 100%;'>" + LocalPlayer.question + "</h3>";
         for (let card in LocalPlayer.deck) {
             deck += createAnswerCard(LocalPlayer.deck[card]);
         }
