@@ -32,30 +32,44 @@ class SimpleHTTPServer(http.server.BaseHTTPRequestHandler):
 
     def _send_text(self, text):
         self.wfile.write(bytes(text, "utf-8"))
+        self.wfile.flush()
+        self.wfile.close()
 
     def _not_found(self):
         self.send_response(404)
         self.end_headers()
         self.close_connection = True
+        self.wfile.flush()
+        self.wfile.close()
 
     def _method_not_allowed(self):
         self.send_response(405)
         self.end_headers()
         self.close_connection = True
+        self.wfile.flush()
+        self.wfile.close()
 
     def do_request(self, only_headers):
         print("do_request(" + str(only_headers) + "), path: " + self.path)
         if str.startswith(self.path, "/static/") and os.path.exists('templates' + self.path):
             self._set_headers(mimetypes.guess_type('templates' + self.path)[0])
+            self.wfile.flush()
+            self.wfile.close()
         elif str.startswith(self.path, "/static/"):
             self._not_found()
             return
         elif str.startswith(self.path, "/player.html"):
             self._set_html_headers()
+            self.wfile.flush()
+            self.wfile.close()
         elif str.startswith(self.path, "/desktop.html"):
             self._set_html_headers()
+            self.wfile.flush()
+            self.wfile.close()
         elif str.startswith(self.path, "/"):
             self._set_html_headers()
+            self.wfile.flush()
+            self.wfile.close()
         else:
             self._not_found()
             return
