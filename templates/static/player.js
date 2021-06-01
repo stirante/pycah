@@ -1,24 +1,29 @@
-let wsocket = new WebSocket("ws://" + location.host + ":8080/");
-wsocket.onmessage = evt => {
-    console.log(evt.data);
-    let packet = JSON.parse(evt.data);
-    switch (packet.command) {
-        case Command.JOIN:
-            handleJoinResponse(packet);
-            break;
-        case Command.GAME_STATE:
-            handleGameState(packet);
-            break;
-    }
-};
-wsocket.onopen = () => {
-    keepAlive();
-};
+let wsocket;
+let config;
 
-wsocket.onclose = () => {
-    alert("Connection closed!");
-    //wsocket = new WebSocket("ws://" + location.host + ":8080/");
-};
+fetch('/config.json').then(value => value.text()).then(value => {
+    config = JSON.parse(value);
+    wsocket = new WebSocket("ws://" + config.websocket + "/");
+    wsocket.onmessage = evt => {
+        console.log(evt.data);
+        let packet = JSON.parse(evt.data);
+        switch (packet.command) {
+            case Command.JOIN:
+                handleJoinResponse(packet);
+                break;
+            case Command.GAME_STATE:
+                handleGameState(packet);
+                break;
+        }
+    };
+    wsocket.onopen = () => {
+        keepAlive();
+    };
+
+    wsocket.onclose = () => {
+        alert("Connection closed!");
+    };
+});
 
 const Command = {
     KEEP_ALIVE: "keep_alive",

@@ -1,0 +1,5 @@
+{
+  "host": "localhost",
+  "websocketPort": 8080,
+  "httpPort": 80
+}

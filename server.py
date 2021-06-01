@@ -9,13 +9,14 @@ from collections import Counter
 import json
 import uuid
 
-from cardcast import CardSet, DEFAULT_SET
+from cards import CardSet, _ALL_PACKS
 import http_server
 from websocket_server import start_websocket
+from config import _CONFIG
 
-HOST = socket.gethostbyname(socket.gethostname())
-HTTP_PORT = 80
-WEBSOCKET_PORT = 8080
+HOST = socket.gethostbyname(_CONFIG["host"])
+HTTP_PORT = _CONFIG["httpPort"]
+WEBSOCKET_PORT = _CONFIG["websocketPort"]
 
 
 class Command(Enum):
@@ -61,7 +62,7 @@ class GameSession:
         self.gm = gm
         self.players = []
         self.code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        self.sets = []
+        self.sets = [CardSet(x["id"]) for x in _ALL_PACKS if x["official"]]
         self.phase = GamePhase.NOT_STARTED
         self.current_question = ""
         self.current_answers = {}
@@ -135,7 +136,7 @@ class GameSession:
 
     def get_random_answer(self):
         diff = list(set(random.choice(self.sets).answers).difference(self.alreadyChosenAnswers))
-        if len(diff) is 0:
+        if len(diff) == 0:
             self.alreadyChosenAnswers = []
             diff = random.choice(self.sets).answers
         choice = random.choice(diff)
@@ -144,7 +145,7 @@ class GameSession:
 
     def get_random_question(self):
         diff = list(set(random.choice(self.sets).questions).difference(self.alreadyChosenQuestions))
-        if len(diff) is 0:
+        if len(diff) == 0:
             self.alreadyChosenQuestions = []
             diff = random.choice(self.sets).questions
         choice = random.choice(diff)
@@ -153,7 +154,7 @@ class GameSession:
 
     async def update_session(self):
         if self.phase == GamePhase.NOT_STARTED and all([x.ready for x in self.players]) and \
-                len(self.sets) is not 0 and len(self.players) > 1:
+                len(self.sets) != 0 and len(self.players) > 1:
             self.phase = GamePhase.PICK_YOUR_CARD
             self.current_question = self.get_random_question()
             await self.update_decks()
@@ -243,20 +244,19 @@ async def handle_add_card_set(websocket, packet):
     print("Add card set " + packet["set_id"])
     session = get_session_by_client(client)
     if packet["set_id"] == "":
-        session.sets.append(DEFAULT_SET)
         await client.send({
             "command": Command.ADD_CARD_SET.value,
-            "success": True,
-            "set_name": DEFAULT_SET.name
+            "success": False,
+            "set_name": packet["set_id"]
         })
         return
     try:
-        set = CardSet(packet["set_id"])
-        session.sets.append(set)
+        s = CardSet(packet["set_id"])
+        session.sets.append(s)
         await client.send({
             "command": Command.ADD_CARD_SET.value,
             "success": True,
-            "set_name": set.name
+            "set_name": s.name
         })
         await session.update_session()
     except (IOError, KeyError) as e:

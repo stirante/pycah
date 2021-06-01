@@ -1,22 +1,32 @@
-let wsocket = new WebSocket("ws://" + location.host + ":8080/");
-wsocket.onmessage = evt => {
-    console.log(evt.data);
-    let packet = JSON.parse(evt.data);
-    switch (packet.command) {
-        case Command.SESSION_STATE:
-            handleSessionState(packet);
-            break;
-        case Command.CREATE_SESSION:
-            handleCreateSessionResponse(packet);
-            break;
-        case Command.ADD_CARD_SET:
-            handleAddCardSetResponse(packet);
-            break;
-    }
-};
-wsocket.onopen = () => {
-    keepAlive();
-};
+let wsocket;
+let config;
+
+fetch('/config.json').then(value => value.text()).then(value => {
+    config = JSON.parse(value);
+    wsocket = new WebSocket("ws://" + config.websocket + "/");
+    wsocket.onmessage = evt => {
+        console.log(evt.data);
+        let packet = JSON.parse(evt.data);
+        switch (packet.command) {
+            case Command.SESSION_STATE:
+                handleSessionState(packet);
+                break;
+            case Command.CREATE_SESSION:
+                handleCreateSessionResponse(packet);
+                break;
+            case Command.ADD_CARD_SET:
+                handleAddCardSetResponse(packet);
+                break;
+        }
+    };
+    wsocket.onopen = () => {
+        keepAlive();
+    };
+});
+let sets = [];
+fetch('/sets.json').then(value => value.text()).then(value => {
+    sets = JSON.parse(value);
+});
 
 const Command = {
     KEEP_ALIVE: "keep_alive",
@@ -61,7 +71,7 @@ function handleCreateSessionResponse(packet) {
     $code.text(LocalSession.code);
     let $invite = $("#invite-qr-code");
     $invite.click(() => {
-        let win = window.open("http://" + location.hostname + "/player.html#" + LocalSession.code, "_blank");
+        let win = window.open("http://" + config.http + "/player.html#" + LocalSession.code, "_blank");
         if (win) {
             win.focus();
         } else {
@@ -69,7 +79,7 @@ function handleCreateSessionResponse(packet) {
         }
     });
     new QRCode($invite[0], {
-        text: "http://" + location.hostname + "/player.html#" + LocalSession.code,
+        text: "http://" + config.http + "/player.html#" + LocalSession.code,
         width: 128,
         height: 128,
         colorDark: "#000000",
