@@ -14,7 +14,7 @@ import http_server
 from websocket_server import start_websocket
 from config import _CONFIG
 
-HOST = socket.gethostbyname(_CONFIG["host"])
+HOST = socket.gethostbyname(socket.gethostname())
 HTTP_PORT = _CONFIG["httpPort"]
 WEBSOCKET_PORT = _CONFIG["websocketPort"]
 
